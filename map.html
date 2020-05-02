@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<head>
+<script src='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+<div id='map' style='width: 900px; height: 800px;'></div>
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoia2FjaGFuMTIwOCIsImEiOiJjazVjcGM3cnkwNnB5M2xtc2U4NGZkcmIyIn0.O-jP2GS_R5X19n8wYW_99Q';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/light-v10',
+        center: [15, 55],
+        zoom: 3.3
+    });
+    map.scrollZoom.disable()
+    map.boxZoom.disable()
+    map.dragRotate.disable()
+    map.dragPan.disable()
+    map.keyboard.disable()
+    map.doubleClickZoom.disable()
+    map.touchZoomRotate.disable()
+
+    var hoveredCountryID = null
+//     map.on('mousemove', function(e) {
+// document.getElementById('info').innerHTML =
+// // e.point is the x, y coordinates of the mousemove event relative
+// // to the top-left corner of the map
+// console.log(e.point) +
+// '<br />' +
+// // e.lngLat is the longitude, latitude geographical position of the event
+// console.log(e.lngLat.wrap());
+// });
+
+    map.on('load', function() {
+        map.addSource('countries', {
+            'type': 'geojson',
+            'data': 'data/europe.geojson',
+        })
+
+        map.addLayer({
+            'id': 'country-fills',
+            'type': 'fill',
+            'source': 'countries',
+            'layout': {},
+            'paint': {
+                'fill-color': '#627BC1',
+                'fill-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    0.5,
+                    0.1
+                ]
+            }
+        })
+
+        map.addLayer({
+            'id': 'country-borders',
+            'type': 'line',
+            'source': 'countries',
+            'layout': {},
+            'paint':{
+                'line-color': '#627BC1',
+                'line-width': 2
+            }
+        })
+
+        map.on('mousemove', 'country-fills', function(e) {
+            if (e.features.length > 0) {
+                if (hoveredCountryID) {
+                    map.setFeatureState(
+                        {source: 'countries', id: hoveredCountryID},
+                        {hover: false}
+                    )
+                }
+
+                hoveredCountryID = e.features[0].id
+                map.setFeatureState(
+                    {source: 'countries', id: hoveredCountryID},
+                    {hover: true}
+                )
+            }
+        })
+
+        map.on('mouseleave', 'country-fills', function() {
+            if (hoveredCountryID) {
+                map.setFeatureState(
+                    {source: 'countries', id: hoveredCountryID},
+                    {hover: false}
+                )
+            }
+            hoveredCountryID = null
+        })
+    })
+    </script>
+</body>
